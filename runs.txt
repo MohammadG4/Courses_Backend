@@ -1,0 +1,2 @@
+- Creating app from template
+!python manage.py startapp {app_name} --template=./template_app

@@ -12,4 +12,5 @@ urlpatterns = [
     # App Endpoints
     path('api/users/', include('users.urls')),
     path('api/', include('courses.urls')), # Registers /api/courses/
+    path('api/', include('enrollments.urls')),
 ]
