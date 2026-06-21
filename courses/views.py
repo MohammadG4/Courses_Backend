@@ -1,20 +1,28 @@
 from rest_framework import viewsets, permissions
 from .models import Course, Module, Lesson
 from .serializers import CourseSerializer, ModuleSerializer, LessonSerializer
+from .permissions import IsInstructorOrReadOnly
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsInstructorOrReadOnly]
 
     def get_queryset(self):
-        # 1. Intercept the Host header (e.g., 'dr-walid.localhost:8000') [cite: 63]
+        user = self.request.user
+
+        # 1. Admin sees everything
+        if user.is_authenticated and getattr(user, 'role', '') == 'ADMIN':
+            return Course.objects.all()
+
+        # 2. Instructor sees only their own courses
+        if user.is_authenticated and getattr(user, 'role', '') == 'INSTRUCTOR':
+            return Course.objects.filter(instructor=user)
+
+        # 3. Students (or unauthenticated) see published courses based on subdomain
         host = self.request.META.get('HTTP_HOST', '')
-        
-        # 2. Extract the subdomain
         subdomain = host.split('.')[0] if '.' in host else None
         
-        # 3. Dynamically filter the queryset based on the subdomain [cite: 63]
-        if subdomain and subdomain != 'localhost' and subdomain != '127':
+        if subdomain and subdomain not in ['localhost', '127', 'www']:
             return Course.objects.filter(instructor__subdomain=subdomain, is_published=True)
         
         # Fallback if no specific subdomain is accessed

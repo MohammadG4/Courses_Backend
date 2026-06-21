@@ -20,7 +20,7 @@
       "name": "1. Authentication & Users",
       "item": [
         {
-          "name": "Register User",
+          "name": "Register User (Student)",
           "request": {
             "method": "POST",
             "header": [
@@ -48,7 +48,35 @@
           }
         },
         {
-          "name": "Login (Get JWT Token)",
+          "name": "Register User (Instructor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"instructor1@example.com\",\n    \"password\": \"securepassword123\",\n    \"role\": \"INSTRUCTOR\",\n    \"subdomain\": \"myacademy\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/register/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "register",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (Get JWT Token) - Student",
           "event": [
             {
               "listen": "test",
@@ -74,6 +102,47 @@
             "body": {
               "mode": "raw",
               "raw": "{\n    \"email\": \"student1@example.com\",\n    \"password\": \"securepassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/token/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "token",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (Get JWT Token) - Instructor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access) {",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"instructor1@example.com\",\n    \"password\": \"securepassword123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/token/",
@@ -124,6 +193,16 @@
         {
           "name": "Get All Courses",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "url": {
               "raw": "{{base_url}}/api/courses/",

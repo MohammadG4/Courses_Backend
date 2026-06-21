@@ -16,10 +16,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('email', 'password', 'role', 'subdomain')
 
     def create(self, validated_data):
+        subdomain = validated_data.get('subdomain', None)
+        if subdomain == '':
+            subdomain = None
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
             role=validated_data.get('role', 'STUDENT'),
-            subdomain=validated_data.get('subdomain', '')
+            subdomain=subdomain
         )
         return user
